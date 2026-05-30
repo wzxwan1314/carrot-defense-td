@@ -1,13 +1,23 @@
 class Game {
     constructor() {
+        const canvasEl = document.getElementById('game-canvas');
+        if (!canvasEl) {
+            document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:40vh;">错误: 找不到 canvas 元素</h1>';
+            return;
+        }
+
         this.app = new PIXI.Application({
             width: CONFIG.GAME_WIDTH,
             height: CONFIG.GAME_HEIGHT,
             backgroundColor: 0x2d5a27,
-            view: document.getElementById('game-canvas'),
+            view: canvasEl,
             antialias: true,
             resolution: 1,
         });
+
+        // Enable stage event system (required for PixiJS 7)
+        this.app.stage.eventMode = 'static';
+        this.app.stage.hitArea = new PIXI.Rectangle(0, 0, CONFIG.GAME_WIDTH, CONFIG.GAME_HEIGHT);
 
         const canvas = this.app.view;
         canvas.style.width = CONFIG.GAME_WIDTH + 'px';

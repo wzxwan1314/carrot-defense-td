@@ -3,10 +3,14 @@ class LevelUI {
         this.game = game;
         this.container = new PIXI.Container();
         this.container.eventMode = 'static';
-        this.container.visible = false;
 
         this._buildLevelSelect();
         this._buildResultScreen();
+
+        // Show level select immediately on init
+        this.selectContainer.visible = true;
+        this.resultContainer.visible = false;
+        this.container.visible = true;
     }
 
     // ──── Level Select ────
@@ -278,12 +282,41 @@ class LevelUI {
     // ──── Public Methods ────
 
     showLevelSelect() {
-        // Rebuild to refresh stars
-        this.selectContainer.removeChildren();
-        this._buildLevelSelect();
+        this._refreshStars();
         this.selectContainer.visible = true;
         this.resultContainer.visible = false;
         this.container.visible = true;
+    }
+
+    /** Refresh star display on level buttons */
+    _refreshStars() {
+        if (!this._levelButtons) return;
+        // Remove old star texts and add updated ones
+        const containers = this.selectContainer.children;
+        // Level buttons start at index 1 (after bg) through level count
+        const levels = LEVELS;
+        for (let i = 0; i < levels.length; i++) {
+            const btn = this._levelButtons[i];
+            if (!btn) continue;
+            const stars = SaveSystem.getStars(i);
+            // Remove old star text (child at index -1 or last child after name+info)
+            // Reuse or recreate: remove last child if it starts with ★ or ☆
+            const lastChild = btn.children[btn.children.length - 1];
+            if (lastChild && lastChild instanceof PIXI.Text &&
+                (lastChild.text.includes('★') || lastChild.text.includes('☆'))) {
+                btn.removeChild(lastChild);
+                lastChild.destroy();
+            }
+            if (stars > 0) {
+                const starText = new PIXI.Text(
+                    '★'.repeat(stars) + '☆'.repeat(3 - stars),
+                    { fontFamily: 'sans-serif', fontSize: 18, fill: 0xffdd44 }
+                );
+                starText.x = 220 - 80;
+                starText.y = 12;
+                btn.addChild(starText);
+            }
+        }
     }
 
     showResult(won, levelIndex, lives, gold, wave) {
